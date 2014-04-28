@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -23,14 +24,14 @@ namespace NetGetApp
         
         public NetGet(String[] args)
         {
-            var argTabRaw = ShadowLib.ArgCutter(args);
+            var argTabRaw = ShadoLib.ArgCutter(args);
             var argTab = ArgTabSort(argTabRaw);
 
             if (argTab.ContainsKey("h"))
             {                
                 Console.WriteLine(Lang.GetString("help"), Environment.NewLine);
                 Console.WriteLine(Lang.GetString("mainAnyKey"));
-                Console.ReadKey();   
+                Console.ReadKey();                
                 return;
             }
 
@@ -42,11 +43,15 @@ namespace NetGetApp
                 return;
             }
 
-            var fileName = argTab["o"].ToString();
+            var fileName = "";
 
-            if (argTab.ContainsKey("rn"))
+            if (argTab.ContainsKey("rn") && argTab.ContainsKey("o"))
             {
                 fileName = _fileNum++ + "_" + argTab["o"];
+            }
+            else if (argTab.ContainsKey("o"))
+            {
+                fileName = argTab["o"].ToString();   
             }
 
             GetUrl(argTab["url"].ToString(), fileName);
@@ -59,12 +64,7 @@ namespace NetGetApp
 
                 Thread.Sleep(timer * 1000);
                 Main(args);
-            }
-            else
-            {
-                Console.WriteLine(Lang.GetString("mainAnyKey"));
-                Console.ReadKey();   
-            }            
+            }           
         }        
 
         private static Hashtable ArgTabSort(ICollection argTabRaw)
@@ -100,7 +100,7 @@ namespace NetGetApp
                     {
                         client.DownloadString(url);
 
-                        Console.WriteLine(Lang.GetString("urlDoneNoFile"));
+                        Console.WriteLine(Lang.GetString("urlDoneNoFile"), Environment.NewLine);
                     }
                     else
                     {

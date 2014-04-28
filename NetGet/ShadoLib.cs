@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace NetGetApp
 {
-    static class ShadowLib
+    static class ShadoLib
     {
         public static Hashtable ArgCutter(String[] args)
         {

@@ -7,13 +7,13 @@ namespace NetGetApp
 {
     static class ShadowLib
     {
-        public static Hashtable argCutter(String[] args)
+        public static Hashtable ArgCutter(String[] args)
         {
-            String argsLine = String.Join(" ", args);
+            var argsLine = String.Join(" ", args);
 
-            MatchCollection mc = Regex.Matches(argsLine, "-([a-z0-9]{1,9})(?: (?!-)([^ ]{1,900}))?");
+            var mc = Regex.Matches(argsLine, "-([a-z0-9]{1,9})(?: (?!-)([^ ]{1,900}))?");
 
-            Hashtable argTab = new Hashtable();
+            var argTab = new Hashtable();
 
             foreach (Match m in mc)
             {

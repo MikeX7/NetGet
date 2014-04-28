@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections;
-using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -11,25 +11,25 @@ namespace NetGetApp
 {
     class NetGet
     {
-        public static ResourceManager lang;
+        public static ResourceManager Lang;
+        static int _fileNum = 1;
         static void Main(string[] args)
         {
-            lang = new ResourceManager("NetGetApp.lang.lang", Assembly.GetExecutingAssembly());            
+            Lang = new ResourceManager("NetGetApp.lang.lang", Assembly.GetExecutingAssembly());            
             
-            NetGet ng = new NetGet(args);
+            // ReSharper disable once ObjectCreationAsStatement
+            new NetGet(args);
         }
         
         public NetGet(String[] args)
         {
-            Hashtable argTabRaw = ShadowLib.argCutter(args);
-            Hashtable argTab = argTabSort(argTabRaw);
-
-            //Console.WriteLine(argTab.ContainsKey("h".ToString()));
+            var argTabRaw = ShadowLib.ArgCutter(args);
+            var argTab = ArgTabSort(argTabRaw);
 
             if (argTab.ContainsKey("h"))
             {                
-                Console.WriteLine(lang.GetString("help"), Environment.NewLine);
-                Console.WriteLine(lang.GetString("mainAnyKey"));
+                Console.WriteLine(Lang.GetString("help"), Environment.NewLine);
+                Console.WriteLine(Lang.GetString("mainAnyKey"));
                 Console.ReadKey();   
                 return;
             }
@@ -37,33 +37,40 @@ namespace NetGetApp
             if (!argTab.ContainsKey("url"))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(lang.GetString("mainNoUrl"));
+                Console.WriteLine(Lang.GetString("mainNoUrl"));
                 Console.ResetColor();
                 return;
             }
 
-            getUrl(argTab["url"].ToString(), argTab["o"].ToString());
+            var fileName = argTab["o"].ToString();
+
+            if (argTab.ContainsKey("rn"))
+            {
+                fileName = _fileNum++ + "_" + argTab["o"];
+            }
+
+            GetUrl(argTab["url"].ToString(), fileName);
 
             int timer;
 
             if (argTab.ContainsKey("r") && int.TryParse(argTab["r"].ToString(), out timer))
             {
-                Console.WriteLine(lang.GetString("mainSleep") + Environment.NewLine, timer);
+                Console.WriteLine(Lang.GetString("mainSleep") + Environment.NewLine, timer);
 
                 Thread.Sleep(timer * 1000);
                 Main(args);
             }
             else
             {
-                Console.WriteLine(lang.GetString("mainAnyKey"));
+                Console.WriteLine(Lang.GetString("mainAnyKey"));
                 Console.ReadKey();   
             }            
-        }
+        }        
 
-        private Hashtable argTabSort(Hashtable argTabRaw)
+        private static Hashtable ArgTabSort(ICollection argTabRaw)
         {            
             String[] allowedArgs = {"url", "o", "rn", "r", "h"};
-            Hashtable argTab = new Hashtable();
+            var argTab = new Hashtable();
 
             if (argTabRaw.Count == 0)
             {
@@ -81,40 +88,37 @@ namespace NetGetApp
             return argTab;
         }
 
-        private bool getUrl(String url, String fileName)
+        private static void GetUrl(String url, String fileName)
         {
-            using (WebClient client = new WebClient())
+            using (var client = new WebClient())
             {      
-                Console.WriteLine(lang.GetString("urlConnecting"), url);
+                Console.WriteLine(Lang.GetString("urlConnecting"), url);
 
                 try
                 {
-                    if (fileName == "")
+                    if (fileName == "" || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
                     {
                         client.DownloadString(url);
 
-                        Console.WriteLine(lang.GetString("urlDoneNoFile"));
+                        Console.WriteLine(Lang.GetString("urlDoneNoFile"));
                     }
                     else
                     {
                         client.DownloadFile(url, fileName);
 
-                        Console.Write(lang.GetString("urlDone"), Environment.NewLine);
+                        Console.Write(Lang.GetString("urlDone"), Environment.NewLine);
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine(fileName);
                         Console.ResetColor();
                     }
                 }
-                catch(WebException e)
+                catch(WebException)
                 {                    
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(lang.GetString("urlMalformed"), url);
-                    Console.ResetColor();
-                    return false;
+                    Console.WriteLine(Lang.GetString("urlMalformed"), url);
+                    Console.ResetColor();                    
                 }
             }
-
-            return true;
         }
     }
 }
